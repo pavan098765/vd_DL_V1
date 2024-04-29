@@ -124,7 +124,7 @@ def getDirectLinkYT(video_url):
         videoDirectLink = yt.streams.get_highest_resolution().url
         onlyAudioDirectLink = yt.streams.get_audio_only().url
         print("YT D-LINK ", videoDirectLink, "\nYT D-LINK(A) ", onlyAudioDirectLink)
-        result = {"title": yt_title, "videoURL": "this is video URL", "audioURL": "This is audio URL",
+        result = {"title": yt_title, "videoURL": videoDirectLink, "audioURL": onlyAudioDirectLink,
                   "thumbnail": thumbnail}
         print("result YT ", result)
         # print("Jresult YT ", jsonify(result))
