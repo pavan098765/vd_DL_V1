@@ -1,19 +1,19 @@
 import hmac
 import traceback
 from pathlib import Path
-import zlib
+
 import base64
 
 import bs4
 import requests
 import logging
-import urllib.parse
+
 import hashlib
 import pytube
 import os
 import re
 import instaloader
-from flask import Flask, jsonify, request, json
+from flask import Flask, jsonify
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -26,10 +26,14 @@ app = Flask(__name__)
 # Configure logging to print messages to the console
 logging.basicConfig(filename='downloader_app.log', level=logging.DEBUG)
 
-
 # Create a Limiter instance
-# limiter = Limiter(get_remote_address,  # Rate limit based on IP address
-#                   app=app, storage_uri="memory://", )  # Use in-memory storage (Can use other storage backends)
+limiter = Limiter(get_remote_address,  # Rate limit based on IP address
+                  app=app, storage_uri="memory://", )  # Use in-memory storage (Can use other storage backends)
+
+
+@app.errorhandler(429)
+def handle_rate_limit_exceeded(e):
+    return jsonify({"error": "Rate limit exceeded. Try again later."}), 429
 
 
 def validate_uuid(userID, userSign):
@@ -67,7 +71,7 @@ def validate_uuid(userID, userSign):
 
 
 def decode_url_safe_base64(encoded_string):
-    print("Inside decode_url_safe_base64", encoded_string)
+    # print("Inside decode_url_safe_base64", encoded_string)
     try:
         # Replacing URL-safe Base64 characters with standard Base64 characters
         encoded_string = encoded_string.replace('!', '/')
@@ -105,17 +109,10 @@ def download_video(url, file_name) -> None:
     print("Video downloaded successfully!")
 
 
-# def compress_and_encode_multiple_times(text, rounds):
-#     for _ in range(rounds):
-#         compressed_text = zlib.compress(text.encode())
-#         text = base64.b64encode(compressed_text).decode()
-#     return text.replace("/", ",")
-
-
 def getDirectLinkYT(video_url):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
     try:
-        print("Inside YT")
+        # print("Inside YT")
         yt = pytube.YouTube(video_url)
         thumbnail = yt.thumbnail_url
 
@@ -123,20 +120,11 @@ def getDirectLinkYT(video_url):
 
         videoDirectLink = yt.streams.get_highest_resolution().url
         onlyAudioDirectLink = yt.streams.get_audio_only().url
-        print("YT D-LINK ", videoDirectLink, "\nYT D-LINK(A) ", onlyAudioDirectLink)
+        # print("YT D-LINK ", videoDirectLink, "\nYT D-LINK(A) ", onlyAudioDirectLink)
         result = {"title": yt_title, "videoURL": videoDirectLink, "audioURL": onlyAudioDirectLink,
                   "thumbnail": thumbnail}
-        print("result YT ", result)
-        # print("Jresult YT ", jsonify(result))
-
-        # Create a JSON response manually
-        # response = (app.response_class(response=json.dumps(result), status=200, mimetype='application/json'))
-        # print("RES ", response, "\n", type(response))
 
         return result
-        # return response
-
-        # return result
 
     except AttributeError as ae:
         print("Exception occurred : ", ae)
@@ -148,7 +136,7 @@ def getDirectLinkInsta(insta_url):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
     try:
-        print("Inside insta")
+        # print("Inside insta")
         # Create an instance of the Instaloader class
         loader = instaloader.Instaloader()
 
@@ -159,16 +147,15 @@ def getDirectLinkInsta(insta_url):
         # Retrieve a post by its URL
         post_url = insta_url
         post = instaloader.Post.from_shortcode(loader.context, post_url.split("/")[-2])
-        print("INSTA D-LINK ", post.video_url)
-        # print(post.url)
+        # print("INSTA D-LINK ", post.video_url)
 
         # Extract the post's caption
         caption = post.caption
         # print("Caption: ", caption)
+
         app.logger.info("SUCCESS | " + ind_time + " | Generated successful Insta link : " + insta_url)
         result = {"videoURL": post.video_url, "title": caption, "thumbnail": post.url}
         # print("result IN ", result)
-        # print("Jresult IN ", jsonify(result))
         return result
         # loader.download_post(post, "target.mp4")
     except Exception as e:
@@ -181,7 +168,7 @@ def getDirectLinkTwitter(url):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
     try:
-        print("Inside twitter")
+        # print("Inside twitter")
         api_url = f"https://twitsave.com/info?url={url}"
 
         response = requests.get(api_url)
@@ -198,11 +185,10 @@ def getDirectLinkTwitter(url):
         file_name = re.sub(r"[^a-zA-Z0-9]+", ' ',
                            file_name).strip() + ".mp4"  # Remove special characters from file name
 
-        print("TWITTER D-LINK ", highest_quality_url)
+        # print("TWITTER D-LINK ", highest_quality_url)
         app.logger.info("SUCCESS | " + ind_time + " | Generated successful Twitter link : " + url)
         result = {"videoURL": highest_quality_url, "title": file_name}
         # print("result TW ", result)
-        # print("Jresult TW ", jsonify(result))
         return result
         # download_video(highest_quality_url, file_name)
     except Exception as e:
@@ -211,14 +197,8 @@ def getDirectLinkTwitter(url):
         return jsonify({"error": str(e)}), 250
 
 
-# def encode_url(long_url):
-#     # Encode the long URL
-#     encoded_url = urllib.parse.quote(long_url)
-#     return encoded_url
-
-
 def downloader(userID, userSign, url):
-    print("Inside downloader")
+    # print("Inside downloader")
 
     try:
         # userID = request.form.get('uuid')
@@ -227,22 +207,22 @@ def downloader(userID, userSign, url):
 
         # print(userID, userSign, url)
         validateCheck = validate_uuid(userID, userSign)
-        print("Validating user id ", validateCheck)
+        # print("Validating user id ", validateCheck)
         if validateCheck:
             if "twitter" in url:
 
                 t_result = getDirectLinkTwitter(url)
-                print("Twitter URL", t_result)
+                # print("Twitter URL", t_result)
                 return t_result
             elif "youtube" in url or "youtu.be" in url:
 
                 y_result = getDirectLinkYT(url)
-                print("Youtube URL", y_result)
+                # print("Youtube URL", y_result)
                 return y_result
             elif "instagram" in url or "insta" in url:
 
                 i_result = getDirectLinkInsta(url)
-                print("Instagram URL", i_result)
+                # print("Instagram URL", i_result)
                 return i_result
             else:
                 return jsonify({"error": "Unsupported URL"}), 250
@@ -256,9 +236,9 @@ def downloader(userID, userSign, url):
 
 
 def decode_url_safe_base64URL(encoded_string):
-    print("Inside decode_url_safe_base64 for URL")
+    # print("Inside decode_url_safe_base64 for URL")
     try:
-        print(encoded_string)
+        # print(encoded_string)
 
         # Convert the URL-safe Base64 encoded string to bytes
         encoded_bytes = encoded_string.encode('utf-8')
@@ -268,15 +248,10 @@ def decode_url_safe_base64URL(encoded_string):
 
         # Convert the decoded bytes to a string
         decoded_string = decoded_bytes.decode('utf-8')
-        print("DECODED URL ",decoded_string)
+        # print("DECODED URL ",decoded_string)
 
         return decoded_string
 
-        # Replacing URL-safe Base64 characters with standard Base64 characters
-        # encoded_string = encoded_string.replace('-', '+').replace('_', '/')
-        # # Padding the string if necessary
-        # encoded_string += '=' * ((4 - len(encoded_string) % 4) % 4)
-        # return base64.b64decode(encoded_string).decode('utf-8')
     except Exception as e:
         print(e)
         print(traceback.format_exc())
@@ -284,17 +259,18 @@ def decode_url_safe_base64URL(encoded_string):
 
 
 @app.route('/api/downloaderHome/<string:params>')
+@limiter.limit("10/minute")  # Apply the global rate limit to this route
 def downloaderHome(params):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
     try:
-        print("home view reached")
+        print("Welcome to downloader")
         params = params.split(";")
         user_id = params[0]
         user_sign = params[1]
-        print("Enc URL ", params[2])
+        # print("Enc URL ", params[2])
         url = decode_url_safe_base64URL(params[2])
-        print("RECEIVED DATA" + "\nuser_id : " + user_id + "\nuser_sign" + user_sign + "\nurl " + str(url))
+        # print("RECEIVED DATA" + "\nuser_id : " + user_id + "\nuser_sign" + user_sign + "\nurl " + str(url))
         result = downloader(user_id, user_sign, str(url))
         print("RESULT ", result)
         return jsonify(result)
