@@ -221,7 +221,8 @@ def get_ydl_opts(site):
         'youtube.com': ('rohangala07@gmail.com', 'rohangala07'),
         'youtu.be': ('rohangala07@gmail.com', 'rohangala07'),
         'instagram.com': ('katebrooks@myyahoo.com', 'OnlyFans1'),
-        'twiter.com': ('brooks_kat83539', 'OnlyFans@1')
+        'twitter.com': ('brooks_kat83539', 'OnlyFans@1'),
+        'pornhub.org': ('rohangala07@gmail.com', 'Bg.X.twWh4DQTDR'),
         # Add more sites and corresponding credentials as needed
     }
 
