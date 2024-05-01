@@ -1,4 +1,6 @@
 import hmac
+import random
+import string
 import traceback
 from pathlib import Path
 
@@ -19,6 +21,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from pytz import timezone
 from datetime import datetime
+from yt_dlp import YoutubeDL
 
 app = Flask(__name__)
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -209,23 +212,25 @@ def downloader(userID, userSign, url):
         validateCheck = validate_uuid(userID, userSign)
         # print("Validating user id ", validateCheck)
         if validateCheck:
-            if "twitter" in url:
-
-                t_result = getDirectLinkTwitter(url)
-                # print("Twitter URL", t_result)
-                return t_result
-            elif "youtube" in url or "youtu.be" in url:
-
-                y_result = getDirectLinkYT(url)
-                # print("Youtube URL", y_result)
-                return y_result
-            elif "instagram" in url or "insta" in url:
-
-                i_result = getDirectLinkInsta(url)
-                # print("Instagram URL", i_result)
-                return i_result
-            else:
-                return jsonify({"error": "Unsupported URL"}), 250
+            result = allInOneDownloader(url)
+            return result
+            # if "twitter" in url:
+            #
+            #     t_result = getDirectLinkTwitter(url)
+            #     # print("Twitter URL", t_result)
+            #     return t_result
+            # elif "youtube" in url or "youtu.be" in url:
+            #
+            #     y_result = getDirectLinkYT(url)
+            #     # print("Youtube URL", y_result)
+            #     return y_result
+            # elif "instagram" in url or "insta" in url:
+            #
+            #     i_result = getDirectLinkInsta(url)
+            #     print("Instagram URL", i_result)
+            #     return i_result
+            # else:
+            #     return jsonify({"error": "Unsupported URL"}), 250
         else:
             return jsonify({"error": "Unauthorized. Please install our app to use our features for free."}), 250
 
@@ -233,6 +238,50 @@ def downloader(userID, userSign, url):
         print(e)
         print(traceback.format_exc())
         return None
+
+
+def allInOneDownloader(url):
+    options = {
+        'format': "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[ext=mp4]",
+        # Choose the best quality format
+    }
+    with YoutubeDL(options) as ydl:
+        try:
+            # ydl.download(URLS)
+            info = ydl.extract_info(url, download=False)  # Extract video information without downloading
+            # print(info)
+            direct_link = info['url']  # Get the direct link
+            print("Direct link:", direct_link)
+            result = {"videoURL": direct_link, "title": extract_title(info)}
+            # print("result TW ", result)
+            return result
+        except KeyError as ke:
+
+            print(traceback.format_exc())
+            print("------")
+            result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info)}
+            return result
+
+
+def extract_title(data):
+    if "title" in data:
+        return data["title"]
+    else:
+        return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+
+
+def print_nested_urls(data, key='url'):
+    url_list = []
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k == key and ".mp4" in v:
+                url_list.append(v)
+            else:
+                url_list.extend(print_nested_urls(v, key))  # Extend the list with the result of recursive call
+    elif isinstance(data, list):
+        for item in data:
+            url_list.extend(print_nested_urls(item, key))  # Extend the list with the result of recursive call
+    return url_list  # Return the url_list at the end
 
 
 def decode_url_safe_base64URL(encoded_string):
