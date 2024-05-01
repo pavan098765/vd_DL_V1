@@ -20,6 +20,9 @@ from flask_limiter.util import get_remote_address
 from pytz import timezone
 from datetime import datetime
 from yt_dlp import YoutubeDL
+from pytube.innertube import _default_clients
+
+_default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID_CREATOR"]
 
 app = Flask(__name__)
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
