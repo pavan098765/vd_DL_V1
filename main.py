@@ -225,11 +225,12 @@ def extract_site_from_url(url):
 
 def get_ydl_opts(site):
     credentials = {
-        'youtube.com': ('rohangala07@gmail.com', 'rohangala07'),
-        'youtu.be': ('rohangala07@gmail.com', 'rohangala07'),
-        'instagram.com': ('katebrooks@myyahoo.com', 'OnlyFans1'),
-        'twitter.com': ('brooks_kat83539', 'OnlyFans@1'),
-        'pornhub.org': ('rohangala07@gmail.com', 'Bg.X.twWh4DQTDR'),
+        'example': ('rohangala07@gmail.com', 'rohangala07'),
+        # 'youtube.com': ('rohangala07@gmail.com', 'rohangala07'),
+        # 'youtu.be': ('rohangala07@gmail.com', 'rohangala07'),
+        # 'instagram.com': ('katebrooks@myyahoo.com', 'OnlyFans1'),
+        # 'twitter.com': ('brooks_kat83539', 'OnlyFans@1'),
+        # 'pornhub.org': ('rohangala07@gmail.com', 'Bg.X.twWh4DQTDR'),
         # Add more sites and corresponding credentials as needed
     }
 
@@ -249,11 +250,14 @@ def get_ydl_opts(site):
 
 
 def allInOneDownloader(url):
-    # Dictionary mapping site names to tuples of (username, password)
-
     site = extract_site_from_url(url)
 
     options = get_ydl_opts(site)
+
+    # options = {
+    #     'format': 'bestvideo+bestaudio/best',
+    #     # Other common options here
+    # }
 
     with YoutubeDL(options) as ydl:
         try:
