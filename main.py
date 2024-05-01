@@ -214,23 +214,6 @@ def downloader(userID, userSign, url):
         if validateCheck:
             result = allInOneDownloader(url)
             return result
-            # if "twitter" in url:
-            #
-            #     t_result = getDirectLinkTwitter(url)
-            #     # print("Twitter URL", t_result)
-            #     return t_result
-            # elif "youtube" in url or "youtu.be" in url:
-            #
-            #     y_result = getDirectLinkYT(url)
-            #     # print("Youtube URL", y_result)
-            #     return y_result
-            # elif "instagram" in url or "insta" in url:
-            #
-            #     i_result = getDirectLinkInsta(url)
-            #     print("Instagram URL", i_result)
-            #     return i_result
-            # else:
-            #     return jsonify({"error": "Unsupported URL"}), 250
         else:
             return jsonify({"error": "Unauthorized. Please install our app to use our features for free."}), 250
 
@@ -238,6 +221,25 @@ def downloader(userID, userSign, url):
         print(e)
         print(traceback.format_exc())
         return None
+
+def fallbackDownloader(url):
+
+    if "twitter" in url:
+        t_result = getDirectLinkTwitter(url)
+        # print("Twitter URL", t_result)
+        return t_result
+    elif "youtube" in url or "youtu.be" in url:
+
+        y_result = getDirectLinkYT(url)
+        # print("Youtube URL", y_result)
+        return y_result
+    elif "instagram" in url or "insta" in url:
+
+        i_result = getDirectLinkInsta(url)
+        print("Instagram URL", i_result)
+        return i_result
+    else:
+        return jsonify({"error": "Unsupported URL"}), 250
 
 
 def allInOneDownloader(url):
@@ -259,9 +261,14 @@ def allInOneDownloader(url):
 
             print(traceback.format_exc())
             print("------")
-            result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info)}
-            return result
+            return handle_exception(info, url)
 
+def handle_exception(info, url):
+    try:
+        # Implement your logic to handle the exception here
+        result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info)}
+        return result
+    except Exception as e:
 
 def extract_title(data):
     if "title" in data:
