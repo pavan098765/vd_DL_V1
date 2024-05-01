@@ -4,6 +4,7 @@ import string
 import traceback
 
 import base64
+from urllib.parse import urlparse
 
 import bs4
 import requests
@@ -207,10 +208,31 @@ def downloader(userID, userSign, url):
         return None
 
 
+def extract_site_from_url(url):
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc
+    if domain.startswith('www.'):
+        domain = domain[4:]  # Remove 'www.' if present
+    return domain
+
+
 def allInOneDownloader(url):
+    # Dictionary mapping site names to tuples of (username, password)
+    site_credentials = {
+        'youtube': ('youtube_username', 'youtube_password'),
+        'vimeo': ('vimeo_username', 'vimeo_password'),
+        # Add more sites and corresponding credentials as needed
+    }
+    site = extract_site_from_url(url)
+    username, password = site_credentials[site]
+    options_auth = {
+        'username': username,
+        'password': password,
+        'format': 'bestvideo+bestaudio/best',  # Choose the best quality format
+
+    }
     options = {
-        'format': "bestvideo+bestaudio[ext=m4a]/best",
-        # Choose the best quality format
+        'format': 'bestvideo+bestaudio/best',  # Choose the best quality format
     }
     with YoutubeDL(options) as ydl:
         try:
