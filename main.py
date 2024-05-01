@@ -2,7 +2,6 @@ import hmac
 import random
 import string
 import traceback
-from pathlib import Path
 
 import base64
 
@@ -12,11 +11,9 @@ import logging
 
 import hashlib
 import pytube
-import os
 import re
 import instaloader
 from flask import Flask, jsonify
-from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from pytz import timezone
@@ -49,12 +46,9 @@ def validate_uuid(userID, userSign):
         signature = userSign
 
         if len(uuid) == 36:
-            # print("Len is 36")
-            # Decode the received signature from base64
-            # print("uuid ", uuid)
-            # print("sign ", signature)
             signature_decoded = decode_url_safe_base64(signature)
             # print("signature OG ", signature_decoded)
+
             # Calculate HMAC of the UUID using the secret key
             hmac_calculated = hmac.new(SECRET_KEY, uuid.encode('utf-8'), hashlib.sha256).digest()
 
@@ -78,9 +72,10 @@ def decode_url_safe_base64(encoded_string):
     try:
         # Replacing URL-safe Base64 characters with standard Base64 characters
         encoded_string = encoded_string.replace('!', '/')
+
         # Padding the string if necessary
         encoded_string += '=' * ((4 - len(encoded_string) % 4) % 4)
-        # print("decoded 64 ", base64.b64decode(encoded_string))
+
         return base64.b64decode(encoded_string)
     except Exception as e:
         print(e)
@@ -88,34 +83,10 @@ def decode_url_safe_base64(encoded_string):
         return None
 
 
-def download_video(url, file_name) -> None:
-    """Download a video from a URL into a filename.
-
-    Args:
-        url (str): The video URL to download
-        file_name (str): The file name or path to save the video to.
-    """
-
-    response = requests.get(url, stream=True)
-    # total_size = int(response.headers.get("content-length", 0))
-    block_size = 1024
-    # progress_bar = tqdm(total=total_size, unit="B", unit_scale=True)
-
-    download_path = os.path.join(Path.home(), "Downloads", file_name)
-
-    with open(download_path, "wb") as file:
-        for data in response.iter_content(block_size):
-            # progress_bar.update(len(data))
-            file.write(data)
-
-    # progress_bar.close()
-    print("Video downloaded successfully!")
-
-
 def getDirectLinkYT(video_url):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
     try:
-        # print("Inside YT")
+        print("Inside YT")
         yt = pytube.YouTube(video_url)
         thumbnail = yt.thumbnail_url
 
@@ -139,7 +110,7 @@ def getDirectLinkInsta(insta_url):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
     try:
-        # print("Inside insta")
+        print("Inside insta")
         # Create an instance of the Instaloader class
         loader = instaloader.Instaloader()
 
@@ -171,7 +142,7 @@ def getDirectLinkTwitter(url):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
     try:
-        # print("Inside twitter")
+        print("Inside twitter")
         api_url = f"https://twitsave.com/info?url={url}"
 
         response = requests.get(api_url)
@@ -183,10 +154,8 @@ def getDirectLinkTwitter(url):
         # quality_buttons = download_button.find_all("a")
         # highest_quality_url = quality_buttons[0].get("href")  # Highest quality video url
 
-        file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[
-            0].text  # Video file name
-        file_name = re.sub(r"[^a-zA-Z0-9]+", ' ',
-                           file_name).strip() + ".mp4"  # Remove special characters from file name
+        file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[0].text
+        file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', file_name).strip() + ".mp4"
 
         # print("TWITTER D-LINK ", highest_quality_url)
         app.logger.info("SUCCESS | " + ind_time + " | Generated successful Twitter link : " + url)
@@ -212,8 +181,23 @@ def downloader(userID, userSign, url):
         validateCheck = validate_uuid(userID, userSign)
         # print("Validating user id ", validateCheck)
         if validateCheck:
-            result = allInOneDownloader(url)
-            return result
+            if "twitter" in url:
+                t_result = getDirectLinkTwitter(url)
+                # print("Twitter URL", t_result)
+                return t_result
+            elif "youtube" in url or "youtu.be" in url:
+
+                y_result = getDirectLinkYT(url)
+                # print("Youtube URL", y_result)
+                return y_result
+            elif "instagram" in url or "insta" in url:
+
+                i_result = getDirectLinkInsta(url)
+                print("Instagram URL", i_result)
+                return i_result
+            else:
+                result = allInOneDownloader(url)
+                return result
         else:
             return jsonify({"error": "Unauthorized. Please install our app to use our features for free."}), 250
 
@@ -223,25 +207,6 @@ def downloader(userID, userSign, url):
         return None
 
 
-def fallbackDownloader(url):
-    if "twitter" in url:
-        t_result = getDirectLinkTwitter(url)
-        # print("Twitter URL", t_result)
-        return t_result
-    elif "youtube" in url or "youtu.be" in url:
-
-        y_result = getDirectLinkYT(url)
-        # print("Youtube URL", y_result)
-        return y_result
-    elif "instagram" in url or "insta" in url:
-
-        i_result = getDirectLinkInsta(url)
-        print("Instagram URL", i_result)
-        return i_result
-    else:
-        return jsonify({"error": "Unsupported URL"}), 250
-
-
 def allInOneDownloader(url):
     options = {
         'format': "bestvideo+bestaudio[ext=m4a]/best",
@@ -249,8 +214,9 @@ def allInOneDownloader(url):
     }
     with YoutubeDL(options) as ydl:
         try:
+            print("Inside allInOneDownloader")
             # ydl.download(URLS)
-            info = ydl.extract_info(url, download=False)  # Extract video information without downloading
+            info = ydl.extract_info(url, download=False, process=True)  # Extract video information without downloading
             # print(info)
             direct_link = info['url']  # Get the direct link
             print("Direct link:", direct_link)
@@ -261,16 +227,21 @@ def allInOneDownloader(url):
 
             print(traceback.format_exc())
             print("------")
-            return handle_exception(info, url)
+            return handle_exception(info)
+        except Exception as e:
+            print(traceback.format_exc())
+            return None
 
 
-def handle_exception(info, url):
+def handle_exception(info):
     try:
+        print("In handle exception")
         # Implement your logic to handle the exception here
         result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info)}
         return result
     except Exception as e:
-        fallbackDownloader(url)
+        print(traceback.format_exc())
+        return None
 
 
 def extract_title(data):
