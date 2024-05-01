@@ -242,7 +242,7 @@ def downloader(userID, userSign, url):
 
 def allInOneDownloader(url):
     options = {
-        'format': "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[ext=mp4]",
+        'format': "bestvideo+bestaudio[ext=m4a]/best",
         # Choose the best quality format
     }
     with YoutubeDL(options) as ydl:
