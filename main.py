@@ -103,6 +103,7 @@ def getDirectLinkYT(video_url):
 
     except AttributeError as ae:
         print("Exception occurred : ", ae)
+        print(traceback.format_exc())
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkYT | " + str(ae))
         return jsonify({"error": str(ae)}), 250
 
@@ -127,13 +128,16 @@ def getDirectLinkInsta(insta_url):
         # Extract the post's caption
         caption = post.caption
         # print("Caption: ", caption)
-
+        print(post.video_url)
+        print(caption)
+        print(post.url)
         app.logger.info("SUCCESS | " + ind_time + " | Generated successful Insta link : " + insta_url)
         result = {"videoURL": post.video_url, "title": caption, "thumbnail": post.url}
-        # print("result IN ", result)
+        print("result IN ", result)
         return result
         # loader.download_post(post, "target.mp4")
     except Exception as e:
+        print(traceback.format_exc())
         print(e)
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkInsta | " + str(e))
         return jsonify({"error": str(e)}), 250
@@ -166,7 +170,7 @@ def getDirectLinkTwitter(url):
         # download_video(highest_quality_url, file_name)
     except Exception as e:
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkTwitter | " + str(e))
-
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 250
 
 
@@ -182,20 +186,23 @@ def downloader(userID, userSign, url):
         validateCheck = validate_uuid(userID, userSign)
         # print("Validating user id ", validateCheck)
         if validateCheck:
-            if "twitter" in url:
-                t_result = getDirectLinkTwitter(url)
-                # print("Twitter URL", t_result)
-                return t_result
-            elif "youtube" in url or "youtu.be" in url:
+
+            if "youtube" in url or "youtu.be" in url:
 
                 y_result = getDirectLinkYT(url)
                 # print("Youtube URL", y_result)
                 return y_result
-            elif "instagram" in url or "insta" in url:
 
-                i_result = getDirectLinkInsta(url)
-                print("Instagram URL", i_result)
-                return i_result
+            # elif "instagram" in url or "insta" in url:
+            #
+            #     i_result = getDirectLinkInsta(url)
+            #     print("Instagram URL", i_result)
+            #     return i_result
+
+            # elif "twitter" in url:
+            #     t_result = getDirectLinkTwitter(url)
+            #     # print("Twitter URL", t_result)
+            #     return t_result
             else:
                 result = allInOneDownloader(url)
                 return result
