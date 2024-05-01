@@ -222,8 +222,8 @@ def downloader(userID, userSign, url):
         print(traceback.format_exc())
         return None
 
-def fallbackDownloader(url):
 
+def fallbackDownloader(url):
     if "twitter" in url:
         t_result = getDirectLinkTwitter(url)
         # print("Twitter URL", t_result)
@@ -263,12 +263,15 @@ def allInOneDownloader(url):
             print("------")
             return handle_exception(info, url)
 
+
 def handle_exception(info, url):
     try:
         # Implement your logic to handle the exception here
         result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info)}
         return result
     except Exception as e:
+        fallbackDownloader(url)
+
 
 def extract_title(data):
     if "title" in data:
