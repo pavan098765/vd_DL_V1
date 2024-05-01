@@ -216,24 +216,35 @@ def extract_site_from_url(url):
     return domain
 
 
-def allInOneDownloader(url):
-    # Dictionary mapping site names to tuples of (username, password)
-    site_credentials = {
+def get_ydl_opts(site):
+    credentials = {
         'youtube': ('youtube_username', 'youtube_password'),
         'vimeo': ('vimeo_username', 'vimeo_password'),
         # Add more sites and corresponding credentials as needed
     }
-    site = extract_site_from_url(url)
-    username, password = site_credentials[site]
-    options_auth = {
-        'username': username,
-        'password': password,
-        'format': 'bestvideo+bestaudio/best',  # Choose the best quality format
 
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',
+        # Other common options here
     }
-    options = {
-        'format': 'bestvideo+bestaudio/best',  # Choose the best quality format
-    }
+
+    # Attempt to retrieve credentials for the site
+    username, password = credentials.get(site, (None, None))
+    if username and password:
+        # Add authentication options if credentials are available
+        ydl_opts['username'] = username
+        ydl_opts['password'] = password
+
+    return ydl_opts
+
+
+def allInOneDownloader(url):
+    # Dictionary mapping site names to tuples of (username, password)
+
+    site = extract_site_from_url(url)
+
+    options = get_ydl_opts(site)
+
     with YoutubeDL(options) as ydl:
         try:
             print("Inside allInOneDownloader")
