@@ -218,8 +218,10 @@ def extract_site_from_url(url):
 
 def get_ydl_opts(site):
     credentials = {
-        'youtube': ('youtube_username', 'youtube_password'),
-        'vimeo': ('vimeo_username', 'vimeo_password'),
+        'youtube.com': ('rohangala07@gmail.com', 'rohangala07'),
+        'youtu.be': ('rohangala07@gmail.com', 'rohangala07'),
+        'instagram.com': ('katebrooks@myyahoo.com', 'OnlyFans1'),
+        'twiter.com': ('brooks_kat83539', 'OnlyFans@1')
         # Add more sites and corresponding credentials as needed
     }
 
