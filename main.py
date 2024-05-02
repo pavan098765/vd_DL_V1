@@ -20,6 +20,7 @@ from flask_limiter.util import get_remote_address
 from pytz import timezone
 from datetime import datetime
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError, ExtractorError
 
 app = Flask(__name__)
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -89,6 +90,7 @@ def getDirectLinkYT(video_url):
     try:
         print("Inside YT")
         yt = pytube.YouTube(video_url)
+        print("YT resp ", str(yt))
         thumbnail = yt.thumbnail_url
 
         yt_title = re.sub(r'[!@#$:?"`~-]', '', yt.title).replace("'", "").strip()
@@ -106,6 +108,34 @@ def getDirectLinkYT(video_url):
         print(traceback.format_exc())
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkYT | " + str(ae))
         return jsonify({"error": str(ae)}), 250
+
+
+def getYTlinkFromKeepvid(url):
+    "https://www.keepvid.to/?f=t&url=https://youtu.be/AKiynoClCaA?si=tXWdIsuBeUUSIzc8"
+    try:
+        print("Inside twitter")
+        api_url = f"https://www.keepvid.to/?f=t&url={url}"
+
+        response = requests.get(api_url)
+        data = bs4.BeautifulSoup(response.text, "html.parser")
+        video_element = data.find('video')
+        highest_quality_url = video_element['src']
+
+        # download_button = data.find_all("div", class_="origin-top-right")[0]
+        # quality_buttons = download_button.find_all("a")
+        # highest_quality_url = quality_buttons[0].get("href")  # Highest quality video url
+
+        file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[0].text
+        file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', file_name).strip() + ".mp4"
+
+        # print("TWITTER D-LINK ", highest_quality_url)
+        result = {"videoURL": highest_quality_url, "title": file_name}
+        # print("result TW ", result)
+        return result
+        # download_video(highest_quality_url, file_name)
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 250
 
 
 def getDirectLinkInsta(insta_url):
@@ -187,25 +217,27 @@ def downloader(userID, userSign, url):
         # print("Validating user id ", validateCheck)
         if validateCheck:
 
-            if "youtube" in url or "youtu.be" in url:
-
-                y_result = getDirectLinkYT(url)
-                # print("Youtube URL", y_result)
-                return y_result
-
+            # if "youtube" in url or "youtu.be" in url:
+            #
+            #     y_result = getDirectLinkYT(url)
+            #     # print("Youtube URL", y_result)
+            #     return y_result
+            #
             # elif "instagram" in url or "insta" in url:
             #
             #     i_result = getDirectLinkInsta(url)
             #     print("Instagram URL", i_result)
             #     return i_result
-
+            #
             # elif "twitter" in url:
+            #
             #     t_result = getDirectLinkTwitter(url)
             #     # print("Twitter URL", t_result)
             #     return t_result
-            else:
-                result = allInOneDownloader(url)
-                return result
+            #
+            # else:
+            result = allInOneDownloader(url)
+            return result
         else:
             return jsonify({"error": "Unauthorized. Please install our app to use our features for free."}), 250
 
@@ -252,6 +284,8 @@ def get_ydl_opts(site):
 def allInOneDownloader(url):
     site = extract_site_from_url(url)
 
+    print("allInOneDownloader site ", str(site))
+
     options = get_ydl_opts(site)
 
     # options = {
@@ -264,7 +298,7 @@ def allInOneDownloader(url):
             print("Inside allInOneDownloader")
             # ydl.download(URLS)
             info = ydl.extract_info(url, download=False, process=True)  # Extract video information without downloading
-            # print(info)
+            print("allInOneDownloader info", info)
             direct_link = info['url']  # Get the direct link
             print("Direct link:", direct_link)
             result = {"videoURL": direct_link, "title": extract_title(info)}
@@ -275,9 +309,6 @@ def allInOneDownloader(url):
             print(traceback.format_exc())
             print("------")
             return handle_exception(info)
-        except Exception as e:
-            print(traceback.format_exc())
-            return None
 
 
 def handle_exception(info):
