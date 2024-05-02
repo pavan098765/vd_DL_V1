@@ -110,32 +110,32 @@ def getDirectLinkYT(video_url):
         return jsonify({"error": str(ae)}), 250
 
 
-def getYTlinkFromKeepvid(url):
-    "https://www.keepvid.to/?f=t&url=https://youtu.be/AKiynoClCaA?si=tXWdIsuBeUUSIzc8"
-    try:
-        print("Inside twitter")
-        api_url = f"https://www.keepvid.to/?f=t&url={url}"
-
-        response = requests.get(api_url)
-        data = bs4.BeautifulSoup(response.text, "html.parser")
-        video_element = data.find('video')
-        highest_quality_url = video_element['src']
-
-        # download_button = data.find_all("div", class_="origin-top-right")[0]
-        # quality_buttons = download_button.find_all("a")
-        # highest_quality_url = quality_buttons[0].get("href")  # Highest quality video url
-
-        file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[0].text
-        file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', file_name).strip() + ".mp4"
-
-        # print("TWITTER D-LINK ", highest_quality_url)
-        result = {"videoURL": highest_quality_url, "title": file_name}
-        # print("result TW ", result)
-        return result
-        # download_video(highest_quality_url, file_name)
-    except Exception as e:
-        print(traceback.format_exc())
-        return jsonify({"error": str(e)}), 250
+# def getYTlinkFromKeepvid(url):
+#     "https://www.keepvid.to/?f=t&url=https://youtu.be/AKiynoClCaA?si=tXWdIsuBeUUSIzc8"
+#     try:
+#         print("Inside twitter")
+#         api_url = f"https://www.keepvid.to/?f=t&url={url}"
+#
+#         response = requests.get(api_url)
+#         data = bs4.BeautifulSoup(response.text, "html.parser")
+#         video_element = data.find('video')
+#         highest_quality_url = video_element['src']
+#
+#         # download_button = data.find_all("div", class_="origin-top-right")[0]
+#         # quality_buttons = download_button.find_all("a")
+#         # highest_quality_url = quality_buttons[0].get("href")  # Highest quality video url
+#
+#         file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[0].text
+#         file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', file_name).strip() + ".mp4"
+#
+#         # print("TWITTER D-LINK ", highest_quality_url)
+#         result = {"videoURL": highest_quality_url, "title": file_name}
+#         # print("result TW ", result)
+#         return result
+#         # download_video(highest_quality_url, file_name)
+#     except Exception as e:
+#         print(traceback.format_exc())
+#         return jsonify({"error": str(e)}), 250
 
 
 def getDirectLinkInsta(insta_url):
