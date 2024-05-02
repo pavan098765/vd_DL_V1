@@ -304,7 +304,7 @@ def get_ydl_opts(site):
     return ydl_opts
 
 
-def fetch_cookies(url):
+def fetch_cookies(url):#
     response = requests.get(url)
     return StringIO(response.text)
 
