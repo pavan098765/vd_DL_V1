@@ -286,7 +286,7 @@ def get_ydl_opts(site):
     if site == "facebook.com":
         ydl_opts = {
             'format': 'best',
-            'nocheckcertificate': 'True,
+            'nocheckcertificate': 'True',
         }
     else:
         ydl_opts = {
