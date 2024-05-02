@@ -286,10 +286,12 @@ def get_ydl_opts(site):
     if site == "facebook.com":
         ydl_opts = {
             'format': 'best',
+            'nocheckcertificate': 'True,
         }
     else:
         ydl_opts = {
             'format': 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]',
+            'nocheckcertificate': 'True',
         }
         if site in ["twitter.com", "x.com"]:
             cookies_url = "https://raw.githubusercontent.com/pavan098765/videoDownloader/master/twitter.com_cookies.txt"
