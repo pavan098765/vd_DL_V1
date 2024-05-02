@@ -265,7 +265,7 @@ def allInOneDownloader(url):
             print("Inside allInOneDownloader")
             # ydl.download(URLS)
             info = ydl.extract_info(url, download=False, process=True)  # Extract video information without downloading
-            # print(info)
+            print(info)
             direct_link = info['url']  # Get the direct link
             print("Direct link:", direct_link)
             result = {"videoURL": direct_link, "title": extract_title(info)}
