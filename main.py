@@ -286,13 +286,19 @@ def get_ydl_opts(site):
     if site == "facebook.com":
         ydl_opts = {
             'format': 'best',
+            'nocheckcertificate': 'True',
         }
     else:
         ydl_opts = {
             'format': 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]',
+            'nocheckcertificate': 'True',
         }
         if site in ["twitter.com", "x.com"]:
             cookies_url = "https://raw.githubusercontent.com/pavan098765/videoDownloader/master/twitter.com_cookies.txt"
+            cookies = fetch_cookies(cookies_url)
+            ydl_opts['cookiefile'] = cookies
+        elif site in ["instagram.com", "insta.com"]:
+            cookies_url = "https://raw.githubusercontent.com/pavan098765/videoDownloader/master/instagram.com_cookies.txt"
             cookies = fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
     return ydl_opts
@@ -324,6 +330,11 @@ def allInOneDownloader(url):
                 direct_link = getTW_DLinkInfo(info)
                 result = {"videoURL": direct_link, "title": extract_title(info)}
 
+            elif site in ["instagram.com", "insta.com"]:
+                direct_link = getIN_DLinkInfo(info)
+                result = {"videoURL": direct_link, "title": extract_title(info)}
+
+
             else:
                 direct_link = info['url']  # Get the direct link
                 result = {"videoURL": direct_link, "title": extract_title(info)}
@@ -350,13 +361,41 @@ def getYT_DLinkInfo(info):
 
 def getTW_DLinkInfo(info):
     # Iterate through entries to find the desired format
+    list_dlink = []
     if 'entries' in info:  # multi post tweet, gets d link for all video posts
         for entry in info['entries']:
             for fmt in entry['formats']:
                 if 'http' in fmt['format_id']:
-                    if fmt['resolution'] == "":
-                        return fmt['url'][0]  # FOR NOW JUST RETURN 1st URL. TODO add client support for multi d-links
+                    if fmt['resolution'] != "audio only":
+                        list_dlink.append(fmt['url'])
+        return list_dlink[0]  # FOR NOW JUST RETURN 1st URL. TODO add client support for multi d-links list
     else:  # gets d link for single post tweet
+        direct_link = info['url']  # Get the direct link
+        return direct_link
+
+
+def getIN_DLinkInfo(info):
+    max_width = 0
+    max_height = 0
+    max_url = ""
+    # Iterate through entries to find the desired format
+    if 'formats' in info:
+        # Iterate through the formats
+        for fmt in info['formats']:
+            width = fmt.get('width', 0)
+            height = fmt.get('height', 0)
+            format_id = fmt.get('format_id', '')
+            ext = fmt.get('ext', '')
+
+            # Check if this format has higher width and height, and format_id does not contain 'dash'
+            if ext == "mp4":
+                if width > max_width and height > max_height and 'dash' not in format_id:
+                    max_width = width
+                    max_height = height
+                    max_url = fmt['url']
+        return max_url
+
+    else:
         direct_link = info['url']  # Get the direct link
         return direct_link
 
