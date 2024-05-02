@@ -255,7 +255,7 @@ def extract_site_from_url(url):
     return domain
 
 
-def get_ydl_opts(site):
+def get_ydl_opts_cred(site):
     credentials = {
         'example': ('rohangala07@gmail.com', 'rohangala07'),
         # 'youtube.com': ('rohangala07@gmail.com', 'rohangala07'),
@@ -281,34 +281,74 @@ def get_ydl_opts(site):
     return ydl_opts
 
 
+def get_ydl_opts(site):
+    if site == "facebook.com":
+        ydl_opts = {
+            'format': 'best',
+        }
+    else:
+        ydl_opts = {
+            'format': 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]',
+        }
+    return ydl_opts
+
+
 def allInOneDownloader(url):
     site = extract_site_from_url(url)
 
-    print("allInOneDownloader site ", str(site))
+    print("Using allInOneDownloader for Site : ", str(site))
 
     options = get_ydl_opts(site)
 
-    # options = {
-    #     'format': 'bestvideo+bestaudio/best',
-    #     # Other common options here
-    # }
-
     with YoutubeDL(options) as ydl:
         try:
-            print("Inside allInOneDownloader")
-            # ydl.download(URLS)
+
             info = ydl.extract_info(url, download=False, process=True)  # Extract video information without downloading
-            print("allInOneDownloader info", info)
-            direct_link = info['url']  # Get the direct link
-            print("Direct link:", direct_link)
-            result = {"videoURL": direct_link, "title": extract_title(info)}
-            # print("result TW ", result)
+            print("info", info)
+
+            if site in ["youtube.com", "youtu.be"]:
+                direct_link = getYT_DLinkInfo(info)
+                result = {"videoURL": direct_link, "title": extract_title(info)}
+
+            elif site in ["twitter.com", "x.com"]:
+                direct_link = getTW_DLinkInfo(info)
+                result = {"videoURL": direct_link, "title": extract_title(info)}
+
+            else:
+                direct_link = info['url']  # Get the direct link
+                result = {"videoURL": direct_link, "title": extract_title(info)}
+
             return result
         except KeyError as ke:
 
             print(traceback.format_exc())
             print("------")
             return handle_exception(info)
+
+
+def getYT_DLinkInfo(info):
+    if 'formats' in info:
+        # link is youtube
+        for items in info['formats']:
+            if 'asr' in items:
+                if items['audio_channels'] == 2 and items['quality'] == 8:
+                    return items['url']
+    else:
+        direct_link = info['url']  # Get the direct link
+        return direct_link
+
+
+def getTW_DLinkInfo(info):
+    # Iterate through entries to find the desired format
+    if 'entries' in info:  # multi post tweet, gets d link for all video posts
+        for entry in info['entries']:
+            for fmt in entry['formats']:
+                if 'http' in fmt['format_id']:
+                    if fmt['resolution'] == "":
+                        return fmt['url'][0]  # FOR NOW JUST RETURN 1st URL. TODO add client support for multi d-links
+    else:  # gets d link for single post tweet
+        direct_link = info['url']  # Get the direct link
+        return direct_link
 
 
 def handle_exception(info):
