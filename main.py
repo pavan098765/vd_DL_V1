@@ -20,7 +20,7 @@ from flask_limiter.util import get_remote_address
 from pytz import timezone
 from datetime import datetime
 from yt_dlp import YoutubeDL
-from pytube.innertube import _default_clients
+
 
 app = Flask(__name__)
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -90,15 +90,15 @@ def getDirectLinkYT(video_url):
     try:
         print("Inside YT")
         yt = pytube.YouTube(video_url)
-       # thumbnail = yt.thumbnail_url
-
+        thumbnail = yt.thumbnail_url
+        print(str(yt)) 
         yt_title = re.sub(r'[!@#$:?"`~-]', '', yt.title).replace("'", "").strip()
 
         videoDirectLink = yt.streams.get_highest_resolution().url
         onlyAudioDirectLink = yt.streams.get_audio_only().url
         # print("YT D-LINK ", videoDirectLink, "\nYT D-LINK(A) ", onlyAudioDirectLink)
-        result = {"title": yt_title, "videoURL": videoDirectLink, "audioURL": onlyAudioDirectLink} 
-                #  "thumbnail": thumbnail}
+        result = {"title": yt_title, "videoURL": videoDirectLink, "audioURL": onlyAudioDirectLink, 
+                  "thumbnail": thumbnail}
 
         return result
 
