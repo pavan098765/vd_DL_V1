@@ -4,6 +4,7 @@ import string
 import traceback
 
 import base64
+from io import StringIO
 from urllib.parse import urlparse
 
 import bs4
@@ -290,7 +291,16 @@ def get_ydl_opts(site):
         ydl_opts = {
             'format': 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]',
         }
+        if site in ["twitter.com", "x.com"]:
+            cookies_url = "https://raw.githubusercontent.com/pavan098765/videoDownloader/master/twitter.com_cookies.txt"
+            cookies = fetch_cookies(cookies_url)
+            ydl_opts['cookiefile'] = cookies
     return ydl_opts
+
+
+def fetch_cookies(url):
+    response = requests.get(url)
+    return StringIO(response.text)
 
 
 def allInOneDownloader(url):
