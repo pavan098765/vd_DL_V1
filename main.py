@@ -188,11 +188,11 @@ def downloader(userID, userSign, url):
         # print("Validating user id ", validateCheck)
         if validateCheck:
 
-            if "youtube" in url or "youtu.be" in url:
+           # if "youtube" in url or "youtu.be" in url:
 
-                y_result = getDirectLinkYT(url)
+             #   y_result = getDirectLinkYT(url)
                 # print("Youtube URL", y_result)
-                return y_result
+                #return y_result
 
             # elif "instagram" in url or "insta" in url:
             #
@@ -204,7 +204,7 @@ def downloader(userID, userSign, url):
             #     t_result = getDirectLinkTwitter(url)
             #     # print("Twitter URL", t_result)
             #     return t_result
-            else:
+            #else:
                 result = allInOneDownloader(url)
                 return result
         else:
