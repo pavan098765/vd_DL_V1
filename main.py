@@ -267,7 +267,7 @@ def get_ydl_opts(site):
     }
 
     ydl_opts = {
-        'format': 'bestvideo+bestaudio/best',
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         # Other common options here
     }
 
