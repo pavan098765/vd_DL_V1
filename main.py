@@ -41,7 +41,7 @@ def handle_rate_limit_exceeded(e):
 def validate_uuid(userID, userSign):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
     SECRET_KEY = b'secret_key'
-    # print("Inside validate_uuid")kknkn
+    # print("Inside validate_uuid")
     try:
         # Get UUID and signature from the request
         uuid = userID
