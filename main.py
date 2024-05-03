@@ -21,7 +21,6 @@ from flask_limiter.util import get_remote_address
 from pytz import timezone
 from datetime import datetime
 from yt_dlp import YoutubeDL
-from yt_dlp.utils import DownloadError, ExtractorError
 
 app = Flask(__name__)
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -36,6 +35,7 @@ limiter = Limiter(get_remote_address,  # Rate limit based on IP address
 
 @app.errorhandler(429)
 def handle_rate_limit_exceeded(e):
+    print(e)
     return jsonify({"error": "Rate limit exceeded. Try again later."}), 429
 
 
@@ -109,34 +109,6 @@ def getDirectLinkYT(video_url):
         print(traceback.format_exc())
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkYT | " + str(ae))
         return jsonify({"error": str(ae)}), 250
-
-
-# def getYTlinkFromKeepvid(url):
-#     "https://www.keepvid.to/?f=t&url=https://youtu.be/AKiynoClCaA?si=tXWdIsuBeUUSIzc8"
-#     try:
-#         print("Inside twitter")
-#         api_url = f"https://www.keepvid.to/?f=t&url={url}"
-#
-#         response = requests.get(api_url)
-#         data = bs4.BeautifulSoup(response.text, "html.parser")
-#         video_element = data.find('video')
-#         highest_quality_url = video_element['src']
-#
-#         # download_button = data.find_all("div", class_="origin-top-right")[0]
-#         # quality_buttons = download_button.find_all("a")
-#         # highest_quality_url = quality_buttons[0].get("href")  # Highest quality video url
-#
-#         file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[0].text
-#         file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', file_name).strip() + ".mp4"
-#
-#         # print("TWITTER D-LINK ", highest_quality_url)
-#         result = {"videoURL": highest_quality_url, "title": file_name}
-#         # print("result TW ", result)
-#         return result
-#         # download_video(highest_quality_url, file_name)
-#     except Exception as e:
-#         print(traceback.format_exc())
-#         return jsonify({"error": str(e)}), 250
 
 
 def getDirectLinkInsta(insta_url):
@@ -300,9 +272,36 @@ def get_ydl_opts(site):
     return ydl_opts
 
 
-def fetch_cookies(url):#
+def fetch_cookies(url):  #
     response = requests.get(url)
     return StringIO(response.text)
+
+
+def extract_thumbnail(data):
+    # Initialize an empty list to store thumbnails
+    thumbnails = []
+
+    # Helper function to traverse the data recursively
+    def traverse(obj):
+        # If the object is a dictionary, iterate over its key-value pairs
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                # If the key is "thumbnail", add the value to the thumbnails list
+                if key == "thumbnail":
+                    thumbnails.append(value)
+                # If the value is a nested dictionary or list, recursively call traverse
+                elif isinstance(value, (dict, list)):
+                    traverse(value)
+        # If the object is a list, iterate over its elements
+        elif isinstance(obj, list):
+            for item in obj:
+                # Recursively call traverse for each element
+                traverse(item)
+
+    # Start traversing the data
+    traverse(data)
+
+    return thumbnails
 
 
 def allInOneDownloader(url):
@@ -320,26 +319,41 @@ def allInOneDownloader(url):
 
             if site in ["youtube.com", "youtu.be"]:
                 direct_link = getYT_DLinkInfo(info)
-                result = {"videoURL": direct_link, "title": extract_title(info)}
+                result = {
+                    "videoURL": direct_link,
+                    "title": extract_title(info),
+                    "thumbnail": extract_thumbnail(info)[0]
+                }
 
             elif site in ["twitter.com", "x.com"]:
                 direct_link = getTW_DLinkInfo(info)
-                result = {"videoURL": direct_link, "title": extract_title(info)}
+                result = {
+                    "videoURL": direct_link,
+                    "title": extract_title(info),
+                    "thumbnail": extract_thumbnail(info)[0]
+                }
 
             elif site in ["instagram.com", "insta.com"]:
                 direct_link = getIN_DLinkInfo(info)
-                result = {"videoURL": direct_link, "title": extract_title(info)}
-
+                result = {
+                    "videoURL": direct_link,
+                    "title": extract_title(info),
+                    "thumbnail": extract_thumbnail(info)[0]
+                }
 
             else:
                 direct_link = info['url']  # Get the direct link
-                result = {"videoURL": direct_link, "title": extract_title(info)}
+                result = {
+                    "videoURL": direct_link,
+                    "title": extract_title(info),
+                    "thumbnail": extract_thumbnail(info)[0]
+                }
 
             return result
         except KeyError as ke:
 
             print(traceback.format_exc())
-            print("------")
+            print(ke)
             return handle_exception(info)
 
 
@@ -403,6 +417,7 @@ def handle_exception(info):
         result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info)}
         return result
     except Exception as e:
+        print(e)
         print(traceback.format_exc())
         return None
 
@@ -463,7 +478,7 @@ def downloaderHome(params):
         user_sign = params[1]
         # print("Enc URL ", params[2])
         url = decode_url_safe_base64URL(params[2])
-        # print("RECEIVED DATA" + "\nuser_id : " + user_id + "\nuser_sign" + user_sign + "\nurl " + str(url))
+        # print("RECEIVED DATA" + "\n user_id : " + user_id + "\n user_sign" + user_sign + "\n url " + str(url))
         result = downloader(user_id, user_sign, str(url))
         print("RESULT ", result)
         return jsonify(result)
