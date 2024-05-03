@@ -269,6 +269,9 @@ def get_ydl_opts(site):
             cookies_url = "https://raw.githubusercontent.com/pavan098765/videoDownloader/master/instagram.com_cookies.txt"
             cookies = fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
+        elif site == 'pornhub.org':
+            cookies = r'https://raw.githubusercontent.com/pavan098765/videoDownloader/master/pornhub.org_cookies.txt'  # fetch_cookies(cookies_url)
+            ydl_opts['cookiefile'] = cookies
     return ydl_opts
 
 
