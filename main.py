@@ -1,15 +1,19 @@
 import hmac
 import random
 import string
+import time
 import traceback
 
 import base64
 from io import StringIO
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 import bs4
 import requests
 import logging
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 import hashlib
 import pytube
@@ -146,6 +150,53 @@ def getDirectLinkInsta(insta_url):
         return jsonify({"error": str(e)}), 250
 
 
+def getTerra(url):
+    print("Inside twitter")
+
+    # Configure Chrome options for headless mode
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode, no UI
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    # Initialize Chrome WebDriver
+    driver = webdriver.Chrome(options=chrome_options)
+
+    # Load the page
+    driver.get(url)
+
+    # Wait for the page to fully load (adjust timeout as needed)
+    time.sleep(5)  # Wait for 10 seconds (you may need to adjust this)
+
+    # Get the HTML content after the page is fully loaded
+    html_content = driver.page_source
+
+    # Parse HTML content
+    soup = bs4.BeautifulSoup(html_content, 'html.parser')
+
+    print(soup)
+
+    download_buttons = soup.find_all('a')
+    d_links = []
+    # Extract the value of the 'href' attribute for each button
+    for button in download_buttons:
+        download_link = button.get('href')
+        if len(download_link) > 200:
+            d_links.append(download_link)
+
+    # Close the WebDriver
+    driver.quit()
+    title = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+    result = {"title": title, "videoURL": d_links[1],
+              "thumbnail": "https://cdn77-pic.xvideos-cdn.com/videos/thumbs169lll/45/a3/cd/45a3cd213fd88303e7f82978e9158aab-1/45a3cd213fd88303e7f82978e9158aab.16.jpg"}
+
+    return result
+
+
+def prepareTerraURL(terra_link):
+    return "https://teradownloader.com/download?link=" + quote(terra_link, safe='')
+
+
 def getDirectLinkTwitter(url):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
@@ -194,12 +245,15 @@ def downloader(userID, userSign, url):
                     except Exception as e:
                         result = allInOneDownloader(url)
                         return result
+                if 'terabox' in url:
+                    result = getTerra(prepareTerraURL(url))
+                    return result
                 else:
                     result = allInOneDownloader(url)
                     return result
 
             except Exception as e:
-                result = {'error':str(e)}
+                result = {'error': str(e)}
                 return result
         else:
             return jsonify({"error": "Unauthorized. Please install our app to use our features for free."}), 250
