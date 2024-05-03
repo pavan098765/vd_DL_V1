@@ -189,28 +189,21 @@ def downloader(userID, userSign, url):
         validateCheck = validate_uuid(userID, userSign)
         # print("Validating user id ", validateCheck)
         if validateCheck:
+            try:
+                if "youtube" in url or "youtu.be" in url:
+                    try:
+                        y_result = getDirectLinkYT(url)
+                        return y_result
+                    except Exception as e:
+                        result = allInOneDownloader(url)
+                        return result
+                else:
+                    result = allInOneDownloader(url)
+                    return result
 
-            # if "youtube" in url or "youtu.be" in url:
-            #
-            #     y_result = getDirectLinkYT(url)
-            #     # print("Youtube URL", y_result)
-            #     return y_result
-            #
-            # elif "instagram" in url or "insta" in url:
-            #
-            #     i_result = getDirectLinkInsta(url)
-            #     print("Instagram URL", i_result)
-            #     return i_result
-            #
-            # elif "twitter" in url:
-            #
-            #     t_result = getDirectLinkTwitter(url)
-            #     # print("Twitter URL", t_result)
-            #     return t_result
-            #
-            # else:
-            result = allInOneDownloader(url)
-            return result
+            except Exception as e:
+                result = {'error':str(e)}
+                return result
         else:
             return jsonify({"error": "Unauthorized. Please install our app to use our features for free."}), 250
 
@@ -251,6 +244,8 @@ def get_ydl_opts_cred(site):
 
 
 def get_ydl_opts(site):
+    cookies_base_url = "https://raw.githubusercontent.com/pavan098765/vd_DL_V1/master/"
+
     if site == "facebook.com":
         ydl_opts = {
             'format': 'best',
@@ -261,16 +256,17 @@ def get_ydl_opts(site):
             'format': 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]',
             'nocheckcertificate': 'True',
         }
+
         if site in ["twitter.com", "x.com"]:
-            cookies_url = "https://raw.githubusercontent.com/pavan098765/vd_DL_V1/master/twitter.com_cookies.txt"
+            cookies_url = cookies_base_url + "twitter.com_cookies.txt"
             cookies = fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
         elif site in ["instagram.com", "insta.com"]:
-            cookies_url = "https://raw.githubusercontent.com/pavan098765/vd_DL_V1/master/instagram.com_cookies.txt"
+            cookies_url = cookies_base_url + "instagram.com_cookies.txt"
             cookies = fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
         elif site == 'pornhub.org':
-            cookies_url = "https://raw.githubusercontent.com/pavan098765/vd_DL_V1/master/pornhub.org_cookies.txt"
+            cookies_url = cookies_base_url + "pornhub.org_cookies.txt"
             cookies = fetch_cookies(cookies_url)  # fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
     return ydl_opts
@@ -390,11 +386,14 @@ def getXV_DLinkInfo(info, site):
 # youtube.com
 def getYT_DLinkInfo(info):
     if 'formats' in info:
+        highest_quality_item = None
         # link is youtube
         for items in info['formats']:
-            if 'asr' in items:
-                if items['audio_channels'] == 2 and items['quality'] == 8:
-                    return items['url']
+            if 'asr' in items and items['audio_channels'] == 2:
+                if highest_quality_item is None or items['quality'] > highest_quality_item['quality']:
+                    highest_quality_item = items
+        if highest_quality_item:
+            return highest_quality_item['url']
     else:
         direct_link = info['url']  # Get the direct link
         return direct_link
