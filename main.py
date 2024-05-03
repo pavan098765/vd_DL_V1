@@ -341,6 +341,14 @@ def allInOneDownloader(url):
                     "thumbnail": extract_thumbnail(info)[0]
                 }
 
+            elif "xvideo" in site or "pornhub" in site:
+                direct_link = getXV_DLinkInfo(info, site)
+                result = {
+                    "videoURL": direct_link,
+                    "title": extract_title(info),
+                    "thumbnail": extract_thumbnail(info)[0]
+                }
+
             else:
                 direct_link = info['url']  # Get the direct link
                 result = {
@@ -357,6 +365,25 @@ def allInOneDownloader(url):
             return handle_exception(info)
 
 
+# xvideos.com, pornhub.com
+def getXV_DLinkInfo(info, site):
+    # Iterate through entries to find the desired format
+    if "pornhub" in site:
+        format_id = "720p"
+    else:
+        format_id = "mp4-high"
+
+    if 'formats' in info:
+        for format_info in info['formats']:
+            if format_info.get('protocol') == 'https' and format_info.get('format_id') == format_id:
+                return format_info.get('url')
+
+    else:  # gets d link for single post tweet
+        direct_link = info['url']  # Get the direct link
+        return direct_link
+
+
+# youtube.com
 def getYT_DLinkInfo(info):
     if 'formats' in info:
         # link is youtube
@@ -369,6 +396,7 @@ def getYT_DLinkInfo(info):
         return direct_link
 
 
+# twitter.com
 def getTW_DLinkInfo(info):
     # Iterate through entries to find the desired format
     list_dlink = []
@@ -384,6 +412,7 @@ def getTW_DLinkInfo(info):
         return direct_link
 
 
+# instagram.com
 def getIN_DLinkInfo(info):
     max_width = 0
     max_height = 0
