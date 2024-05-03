@@ -15,7 +15,7 @@ import hashlib
 import pytube
 import re
 import instaloader
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from pytz import timezone
@@ -181,9 +181,6 @@ def downloader(userID, userSign, url):
     # print("Inside downloader")
 
     try:
-        # userID = request.form.get('uuid')
-        # userSign = request.form.get('signedUuid')
-        # url = request.form.get('url')
 
         # print(userID, userSign, url)
         validateCheck = validate_uuid(userID, userSign)
@@ -498,19 +495,24 @@ def decode_url_safe_base64URL(encoded_string):
         return None
 
 
-@app.route('/api/downloaderHome/<string:params>')
+@app.route('/api/downloaderHome', methods=['POST'])
 @limiter.limit("10/minute")  # Apply the global rate limit to this route
 def downloaderHome(params):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
     try:
         print("Welcome to downloader")
-        params = params.split(";")
-        user_id = params[0]
-        user_sign = params[1]
-        # print("Enc URL ", params[2])
-        url = decode_url_safe_base64URL(params[2])
-        # print("RECEIVED DATA" + "\n user_id : " + user_id + "\n user_sign" + user_sign + "\n url " + str(url))
+
+        user_id = request.form.get('uuid')
+        user_sign = request.form.get('signedUuid')
+        url = decode_url_safe_base64URL(request.form.get('url'))
+
+        # params = params.split(";")
+        # user_id = params[0]
+        # user_sign = params[1]
+        # # print("Enc URL ", params[2])
+        # url = decode_url_safe_base64URL(params[2])
+
         result = downloader(user_id, user_sign, str(url))
         print("RESULT ", result)
         return jsonify(result)
