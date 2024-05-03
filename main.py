@@ -262,15 +262,16 @@ def get_ydl_opts(site):
             'nocheckcertificate': 'True',
         }
         if site in ["twitter.com", "x.com"]:
-            cookies_url = "https://raw.githubusercontent.com/pavan098765/videoDownloader/master/twitter.com_cookies.txt"
+            cookies_url = "https://raw.githubusercontent.com/pavan098765/vd_DL_V1/master/twitter.com_cookies.txt"
             cookies = fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
         elif site in ["instagram.com", "insta.com"]:
-            cookies_url = "https://raw.githubusercontent.com/pavan098765/videoDownloader/master/instagram.com_cookies.txt"
+            cookies_url = "https://raw.githubusercontent.com/pavan098765/vd_DL_V1/master/instagram.com_cookies.txt"
             cookies = fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
         elif site == 'pornhub.org':
-            cookies = r'https://raw.githubusercontent.com/pavan098765/videoDownloader/master/pornhub.org_cookies.txt'  # fetch_cookies(cookies_url)
+            cookies_url = "https://raw.githubusercontent.com/pavan098765/vd_DL_V1/master/pornhub.org_cookies.txt"
+            cookies = fetch_cookies(cookies_url)  # fetch_cookies(cookies_url)
             ydl_opts['cookiefile'] = cookies
     return ydl_opts
 
