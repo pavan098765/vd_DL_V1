@@ -7,4 +7,5 @@ pytube==15.0.0
 pytz==2024.1
 Requests==2.31.0
 selenium==4.20.0
+gunicorn==22.0.0
 yt_dlp==2024.4.9
