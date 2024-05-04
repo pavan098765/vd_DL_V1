@@ -507,7 +507,9 @@ def handle_exception(info):
 
 def extract_title(data):
     if "title" in data:
-        return data["title"]
+        title = data["title"]
+        cleaned_title = re.sub(r'[^a-zA-Z0-9]', '', title)
+        return cleaned_title
     else:
         return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
