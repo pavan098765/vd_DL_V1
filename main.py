@@ -3,6 +3,8 @@ import random
 import string
 import time
 import traceback
+from instagrapi import Client
+from instagrapi.types import StoryMention, StoryMedia, StoryLink, StoryHashtag
 
 import base64
 from io import StringIO
@@ -113,6 +115,18 @@ def getDirectLinkYT(video_url):
         print(traceback.format_exc())
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkYT | " + str(ae))
         return jsonify({"error": str(ae)}), 250
+
+
+def getDirectLinkInsta_instagrapi(insta_url):
+    cl = Client()
+    cl.login(username="katebrooks@myyahoo.com", password="OnlyFans1")
+
+    media_pk = cl.media_pk_from_url(insta_url)
+    media_info = cl.media_info(media_pk).dict()
+
+    result = {"title": media_info['title'], "videoURL": media_info["video_url"], "thumbnail": media_info["thumbnail_url"]}
+
+    return result
 
 
 def getDirectLinkInsta(insta_url):
@@ -247,14 +261,14 @@ def downloader(userID, userSign, url):
                         return result
                 if "instagram" in url or "insta" in url:
                     try:
-                        y_result = allInOneDownloader(url)  # getDirectLinkInsta(url)
-                        return y_result
+                        I_result = getDirectLinkInsta_instagrapi(url)  # getDirectLinkInsta(url)
+                        return I_result
                     except Exception as e:
                         result = allInOneDownloader(url)
                         return result
                 elif 'terabox' in url:
-                    result = getTerra(prepareTerraURL(url))
-                    return result
+                    T_result = getTerra(prepareTerraURL(url))
+                    return T_result
                 else:
                     result = allInOneDownloader(url)
                     return result
