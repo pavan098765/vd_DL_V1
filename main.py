@@ -245,7 +245,14 @@ def downloader(userID, userSign, url):
                     except Exception as e:
                         result = allInOneDownloader(url)
                         return result
-                if 'terabox' in url:
+                if "instagram" in url or "insta" in url:
+                    try:
+                        y_result = getDirectLinkInsta(url)
+                        return y_result
+                    except Exception as e:
+                        result = allInOneDownloader(url)
+                        return result
+                elif 'terabox' in url:
                     result = getTerra(prepareTerraURL(url))
                     return result
                 else:
