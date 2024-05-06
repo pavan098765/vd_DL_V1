@@ -247,7 +247,7 @@ def downloader(userID, userSign, url):
                         return result
                 if "instagram" in url or "insta" in url:
                     try:
-                        y_result = getDirectLinkInsta(url)
+                        y_result = allInOneDownloader(url)  # getDirectLinkInsta(url)
                         return y_result
                     except Exception as e:
                         result = allInOneDownloader(url)
