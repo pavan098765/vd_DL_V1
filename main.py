@@ -1,4 +1,5 @@
 import hmac
+import os
 import random
 import string
 import time
@@ -16,6 +17,7 @@ import logging
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 import hashlib
 import pytube
@@ -124,7 +126,8 @@ def getDirectLinkInsta_instagrapi(insta_url):
     media_pk = cl.media_pk_from_url(insta_url)
     media_info = cl.media_info(media_pk).dict()
 
-    result = {"title": media_info['title'], "videoURL": media_info["video_url"], "thumbnail": media_info["thumbnail_url"]}
+    result = {"title": media_info['title'], "videoURL": media_info["video_url"],
+              "thumbnail": media_info["thumbnail_url"]}
 
     return result
 
@@ -173,8 +176,12 @@ def getTerra(url):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
+    chrome_options.binary_location = os.path.expanduser('~/chrome-bin/opt/google/chrome/chrome') # os.environ.get("GOOGLE_CHROME_BIN")
+
+    service = Service(executable_path=os.path.expanduser('~/chrome-bin/chromedriver'))  # os.environ.get("CHROMEDRIVER_PATH"))
+
     # Initialize Chrome WebDriver
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
     # Load the page
     driver.get(url)
