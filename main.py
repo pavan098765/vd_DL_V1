@@ -257,6 +257,7 @@ def getDirectLinkTwitter(url):
 
 def downloader(userID, userSign, url):
     # print("Inside downloader")
+    ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
 
     try:
 
@@ -268,6 +269,8 @@ def downloader(userID, userSign, url):
                 if "youtube" in url or "youtu.be" in url:
                     try:
                         y_result = getDirectLinkYT(url)
+                        message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
+                        asyncio.run(telegram_bot(message))
                         return y_result
                     except Exception as e:
                         result = allInOneDownloader(url)
@@ -275,18 +278,26 @@ def downloader(userID, userSign, url):
                 if "instagram" in url or "insta" in url:
                     try:
                         I_result = getDirectLinkInsta_instagrapi(url)  # getDirectLinkInsta(url)
+                        message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
+                        asyncio.run(telegram_bot(message))
                         return I_result
                     except Exception as e:
                         result = allInOneDownloader(url)
                         return result
                 elif 'terabox' in url:
                     T_result = getTerra(prepareTerraURL(url))
+                    message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
+                    asyncio.run(telegram_bot(message))
                     return T_result
                 else:
                     result = allInOneDownloader(url)
+                    message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
+                    asyncio.run(telegram_bot(message))
                     return result
 
             except Exception as e:
+                message = ("ERROR | " + ind_time + " | " + str(e) + " | Failed link : " + url)
+                asyncio.run(telegram_bot(message))
                 result = {'error': str(e)}
                 return result
         else:
@@ -600,7 +611,6 @@ async def telegram_bot(message):
 @app.route('/api/downloaderHome/<string:params>')
 @limiter.limit("10/minute")  # Apply the global rate limit to this route
 def downloaderHome(params):
-    ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
     print("Welcome to downloader")
 
     params = params.split(";")
@@ -610,15 +620,13 @@ def downloaderHome(params):
     try:
         result = downloader(user_id, user_sign, str(url))
         print("RESULT ", result)
-        message = ("SUCCESS | " + ind_time + " | Generated successful link : " + url)
-        asyncio.run(telegram_bot(message))
+
         return jsonify(result)
 
     except Exception as e:
         print(e)
         print(traceback.format_exc())
-        message = ("ERROR | " + ind_time + " | " + str(e) + " | Failed link : " + url)
-        asyncio.run(telegram_bot(message))
+
         return jsonify({"error": str(e)}), 250
 
 # print(getDirectLinkYT("https://youtu.be/dQw4w9WgXcQ?feature=youtube_gdata_player"))
