@@ -275,15 +275,15 @@ def downloader(userID, userSign, url):
                     except Exception as e:
                         result = allInOneDownloader(url)
                         return result
-                if "instagram" in url or "insta" in url:
-                    try:
-                        I_result = getDirectLinkInsta_instagrapi(url)  # getDirectLinkInsta(url)
-                        message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
-                        asyncio.run(telegram_bot(message))
-                        return I_result
-                    except Exception as e:
-                        result = allInOneDownloader(url)
-                        return result
+                # elif "instagram" in url or "insta" in url:
+                #     try:
+                #         I_result = getDirectLinkInsta_instagrapi(url)  # getDirectLinkInsta(url)
+                #         message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
+                #         asyncio.run(telegram_bot(message))
+                #         return I_result
+                #     except Exception as e:
+                #         result = allInOneDownloader(url)
+                #         return result
                 elif 'terabox' in url:
                     T_result = getTerra(prepareTerraURL(url))
                     message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
