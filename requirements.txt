@@ -11,3 +11,4 @@ gunicorn==22.0.0
 yt_dlp==2024.4.9
 instagrapi
 pillow
+python-telegram-bot==21.1.1

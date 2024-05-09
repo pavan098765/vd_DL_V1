@@ -6,6 +6,8 @@ import time
 import traceback
 from instagrapi import Client
 from instagrapi.types import StoryMention, StoryMedia, StoryLink, StoryHashtag
+import asyncio
+import telegram
 
 import base64
 from io import StringIO
@@ -176,9 +178,13 @@ def getTerra(url):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    chrome_options.binary_location = os.path.expanduser('~/chrome-bin/opt/google/chrome/chrome') # os.environ.get("GOOGLE_CHROME_BIN")
+    full_path_binary = os.path.expanduser('~/chrome-bin/opt/google/chrome/chrome')
+    print("full_path_binary ", full_path_binary)
+    chrome_options.binary_location = full_path_binary  # os.environ.get("GOOGLE_CHROME_BIN")
 
-    service = Service(executable_path=os.path.expanduser('~/chrome-bin/chromedriver'))  # os.environ.get("CHROMEDRIVER_PATH"))
+    full_path_executable = os.path.expanduser('~/chrome-bin/chromedriver')
+    print("full_path_executable ", full_path_executable)
+    service = Service(executable_path=full_path_executable)  # os.environ.get("CHROMEDRIVER_PATH"))
 
     # Initialize Chrome WebDriver
     driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -536,8 +542,10 @@ def handle_exception(info):
 def extract_title(data):
     if "title" in data:
         title = data["title"]
-        cleaned_title = re.sub(r'[^a-zA-Z0-9]', '', title)
-        return cleaned_title
+        cleaned_title = re.sub(r'[^a-zA-Z0-9]', ' ', title)
+        rand = ''.join(random.choices(string.ascii_letters + string.digits, k=4))
+
+        return cleaned_title + "_" + rand
     else:
         return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
@@ -579,28 +587,38 @@ def decode_url_safe_base64URL(encoded_string):
         return None
 
 
+async def telegram_bot(message):
+    TELEGRAM_API_KEY = '7044476456:AAHXNCdnterlKZDhKVIhWXy6ke5QD5hwhxs'
+    TELEGRAM_USERID = '1260787366'
+    api_key = TELEGRAM_API_KEY
+    user_id = TELEGRAM_USERID
+    bot = telegram.Bot(token=api_key)
+
+    await bot.send_message(chat_id=user_id, text=message)
+
+
 @app.route('/api/downloaderHome/<string:params>')
 @limiter.limit("10/minute")  # Apply the global rate limit to this route
 def downloaderHome(params):
     ind_time = datetime.now(timezone("Asia/Kolkata")).strftime('%Y-%m-%d %H:%M:%S.%f')
+    print("Welcome to downloader")
 
+    params = params.split(";")
+    user_id = params[0]
+    user_sign = params[1]
+    url = decode_url_safe_base64URL(params[2])
     try:
-        print("Welcome to downloader")
-
-        params = params.split(";")
-        user_id = params[0]
-        user_sign = params[1]
-        # print("Enc URL ", params[2])
-        url = decode_url_safe_base64URL(params[2])
-        # print("RECEIVED DATA" + "\n user_id : " + user_id + "\n user_sign" + user_sign + "\n url " + str(url))
         result = downloader(user_id, user_sign, str(url))
         print("RESULT ", result)
+        message = ("SUCCESS | " + ind_time + " | Generated successful link : " + url)
+        asyncio.run(telegram_bot(message))
         return jsonify(result)
 
     except Exception as e:
         print(e)
         print(traceback.format_exc())
-        app.logger.error("ERROR | " + ind_time + " | downloader | " + str(e))
+        message = ("ERROR | " + ind_time + " | " + str(e) + " | Failed link : " + url)
+        asyncio.run(telegram_bot(message))
         return jsonify({"error": str(e)}), 250
 
 # print(getDirectLinkYT("https://youtu.be/dQw4w9WgXcQ?feature=youtube_gdata_player"))
