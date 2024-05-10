@@ -629,7 +629,7 @@ def handle_exception(info):
     try:
         print("In handle exception")
         # Implement your logic to handle the exception here
-        result = {"videoURL": print_nested_urls(info)[0],
+        result = {"videoURL": print_nested_urls(info),
                   "title": extract_title(info)[0],
                   "thumbnail": extract_thumbnail(info),
                   "realTitle": extract_title(info)[1],
