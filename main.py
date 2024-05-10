@@ -497,7 +497,25 @@ def getTW_DLinkInfo(info):
                 if 'http' in fmt['format_id']:
                     if fmt['resolution'] != "audio only":
                         list_dlink.append(fmt['url'])
-        return list_dlink  # FOR NOW JUST RETURN 1st URL.
+
+        highest_resolution = 0
+        highest_resolution_urls = []
+
+        for url in list_dlink:
+            # Extract resolution from URL
+            resolution_str = url.split('/')[-2]
+            resolution = int(
+                resolution_str.split('x')[1])  # Extract the second part of resolution e.g., '720' from '720x1280'
+
+            # If the current URL has higher resolution, clear the list and add the current URL
+            if resolution > highest_resolution:
+                highest_resolution = resolution
+                highest_resolution_urls = [url]
+            # If the current URL has the same resolution as the highest resolution, add it to the list
+            elif resolution == highest_resolution:
+                highest_resolution_urls.append(url)
+
+        return highest_resolution_urls
     else:  # gets d link for single post tweet
         direct_link = info['url']  # Get the direct link
         return direct_link
