@@ -408,7 +408,7 @@ def allInOneDownloader(url):
             if site in ["youtube.com", "youtu.be"]:
                 direct_link = getYT_DLinkInfo(info)
                 result = {
-                    "videoURL": direct_link,
+                    "videoURL": [direct_link],
                     "title": extract_title(info),
                     "thumbnail": extract_thumbnail(info)[0]
                 }
@@ -424,25 +424,25 @@ def allInOneDownloader(url):
             elif site in ["instagram.com", "insta.com"]:
                 direct_link = getIN_DLinkInfo(info)
                 result = {
-                    "videoURL": direct_link,
+                    "videoURL": [direct_link],
                     "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)[0]
+                    "thumbnail": extract_thumbnail(info)
                 }
 
             elif "xvideo" in site or "pornhub" in site:
                 direct_link = getXV_DLinkInfo(info, site)
                 result = {
-                    "videoURL": direct_link,
+                    "videoURL": [direct_link],
                     "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)[0]
+                    "thumbnail": extract_thumbnail(info)
                 }
 
             else:
                 direct_link = info['url']  # Get the direct link
                 result = {
-                    "videoURL": direct_link,
+                    "videoURL": [direct_link],
                     "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)[0]
+                    "thumbnail": extract_thumbnail(info)
                 }
 
             return result
