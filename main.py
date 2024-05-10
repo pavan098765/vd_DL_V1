@@ -110,7 +110,7 @@ def getDirectLinkYT(video_url):
         onlyAudioDirectLink = yt.streams.get_audio_only().url
         # print("YT D-LINK ", videoDirectLink, "\nYT D-LINK(A) ", onlyAudioDirectLink)
         result = {"title": yt_title, "videoURL": [videoDirectLink], "audioURL": onlyAudioDirectLink,
-                  "thumbnail": thumbnail}
+                  "thumbnail": [thumbnail]}
 
         return result
 
@@ -408,9 +408,9 @@ def allInOneDownloader(url):
             if site in ["youtube.com", "youtu.be"]:
                 direct_link = getYT_DLinkInfo(info)
                 result = {
-                    "videoURL": [direct_link],
+                    "videoURL": direct_link,
                     "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)[0]
+                    "thumbnail": extract_thumbnail(info)
                 }
 
             elif site in ["twitter.com", "x.com"]:
@@ -424,7 +424,7 @@ def allInOneDownloader(url):
             elif site in ["instagram.com", "insta.com"]:
                 direct_link = getIN_DLinkInfo(info)
                 result = {
-                    "videoURL": [direct_link],
+                    "videoURL": direct_link,
                     "title": extract_title(info),
                     "thumbnail": extract_thumbnail(info)
                 }
@@ -432,7 +432,7 @@ def allInOneDownloader(url):
             elif "xvideo" in site or "pornhub" in site:
                 direct_link = getXV_DLinkInfo(info, site)
                 result = {
-                    "videoURL": [direct_link],
+                    "videoURL": direct_link,
                     "title": extract_title(info),
                     "thumbnail": extract_thumbnail(info)
                 }
@@ -440,7 +440,7 @@ def allInOneDownloader(url):
             else:
                 direct_link = info['url']  # Get the direct link
                 result = {
-                    "videoURL": [direct_link],
+                    "videoURL": direct_link,
                     "title": extract_title(info),
                     "thumbnail": extract_thumbnail(info)
                 }
@@ -464,11 +464,11 @@ def getXV_DLinkInfo(info, site):
     if 'formats' in info:
         for format_info in info['formats']:
             if format_info.get('protocol') == 'https' and format_info.get('format_id') == format_id:
-                return format_info.get('url')
+                return [format_info.get('url')]
 
     else:  # gets d link for single post tweet
         direct_link = info['url']  # Get the direct link
-        return direct_link
+        return [direct_link]
 
 
 # youtube.com
@@ -481,10 +481,10 @@ def getYT_DLinkInfo(info):
                 if highest_quality_item is None or items['quality'] > highest_quality_item['quality']:
                     highest_quality_item = items
         if highest_quality_item:
-            return highest_quality_item['url']
+            return [highest_quality_item['url']]
     else:
         direct_link = info['url']  # Get the direct link
-        return direct_link
+        return [direct_link]
 
 
 # twitter.com
@@ -541,18 +541,18 @@ def getIN_DLinkInfo(info):
                     max_width = width
                     max_height = height
                     max_url = fmt['url']
-        return max_url
+        return [max_url]
 
     else:
         direct_link = info['url']  # Get the direct link
-        return direct_link
+        return [direct_link]
 
 
 def handle_exception(info):
     try:
         print("In handle exception")
         # Implement your logic to handle the exception here
-        result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info)}
+        result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info), "thumbnail":extract_thumbnail(info)}
         return result
     except Exception as e:
         print(e)
