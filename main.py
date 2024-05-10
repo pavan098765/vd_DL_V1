@@ -109,7 +109,7 @@ def getDirectLinkYT(video_url):
         videoDirectLink = yt.streams.get_highest_resolution().url
         onlyAudioDirectLink = yt.streams.get_audio_only().url
         # print("YT D-LINK ", videoDirectLink, "\nYT D-LINK(A) ", onlyAudioDirectLink)
-        result = {"title": yt_title, "videoURL": videoDirectLink, "audioURL": onlyAudioDirectLink,
+        result = {"title": yt_title, "videoURL": [videoDirectLink], "audioURL": onlyAudioDirectLink,
                   "thumbnail": thumbnail}
 
         return result
@@ -518,7 +518,7 @@ def getTW_DLinkInfo(info):
         return highest_resolution_urls
     else:  # gets d link for single post tweet
         direct_link = info['url']  # Get the direct link
-        return direct_link
+        return [direct_link]
 
 
 # instagram.com
