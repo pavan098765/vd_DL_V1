@@ -275,15 +275,7 @@ def downloader(userID, userSign, url):
                     except Exception as e:
                         result = allInOneDownloader(url)
                         return result
-                # elif "instagram" in url or "insta" in url:
-                #     try:
-                #         I_result = getDirectLinkInsta_instagrapi(url)  # getDirectLinkInsta(url)
-                #         message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
-                #         asyncio.run(telegram_bot(message))
-                #         return I_result
-                #     except Exception as e:
-                #         result = allInOneDownloader(url)
-                #         return result
+
                 elif 'terabox' in url:
                     T_result = getTerra(prepareTerraURL(url))
                     message = ("SUCCESS | " + ind_time + " | " + "Successful link : " + url)
@@ -426,7 +418,7 @@ def allInOneDownloader(url):
                 result = {
                     "videoURL": direct_link,
                     "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)[0]
+                    "thumbnail": extract_thumbnail(info)
                 }
 
             elif site in ["instagram.com", "insta.com"]:
@@ -505,7 +497,7 @@ def getTW_DLinkInfo(info):
                 if 'http' in fmt['format_id']:
                     if fmt['resolution'] != "audio only":
                         list_dlink.append(fmt['url'])
-        return list_dlink[0]  # FOR NOW JUST RETURN 1st URL. TODO add client support for multi d-links list
+        return list_dlink  # FOR NOW JUST RETURN 1st URL.
     else:  # gets d link for single post tweet
         direct_link = info['url']  # Get the direct link
         return direct_link
@@ -628,10 +620,3 @@ def downloaderHome(params):
         print(traceback.format_exc())
 
         return jsonify({"error": str(e)}), 250
-
-# print(getDirectLinkYT("https://youtu.be/dQw4w9WgXcQ?feature=youtube_gdata_player"))
-# print(getDirectLinkInsta("https://www.instagram.com/reel/C502HyHNp6C/?igsh=cnNkaWV0cTZmOHE5"))
-# print(getDirectLinkTwitter("https://twitter.com/DesiHiroin/status/1783470993186640278?t=teUmxOOCzm-S8F4JTn8hQw&s=19"))
-# if __name__ == '__main__':
-#     print("Starting app with host")
-#     app.run(host='0.0.0.0', port=5000)
