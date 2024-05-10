@@ -101,7 +101,7 @@ def getDirectLinkYT(video_url):
     try:
         print("Inside YT")
         yt = pytube.YouTube(video_url)
-        print("YT resp ", str(yt))
+        print("YT resp ", str(yt.channel_id), " | ", yt.length)
         thumbnail = yt.thumbnail_url
 
         yt_title = re.sub(r'[!@#$:?"`~-]', '', yt.title).replace("'", "").strip()
@@ -109,18 +109,33 @@ def getDirectLinkYT(video_url):
         videoDirectLink = yt.streams.get_highest_resolution().url
         onlyAudioDirectLink = yt.streams.get_audio_only().url
         # print("YT D-LINK ", videoDirectLink, "\nYT D-LINK(A) ", onlyAudioDirectLink)
-        result = {"title": yt_title, "videoURL": [videoDirectLink], "audioURL": onlyAudioDirectLink,
-                  "thumbnail": [thumbnail]}
+        result = {"title": yt_title,
+                  "videoURL": [videoDirectLink],
+                  "audioURL": onlyAudioDirectLink,
+                  "thumbnail": [thumbnail],
+                  "realTitle": yt.title,
+                  "uploader": yt.channel_id,
+                  "duration": format_duration(yt.length)
 
+                  }
         return result
-
     except AttributeError as ae:
         print("Exception occurred : ", ae)
         print(traceback.format_exc())
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkYT | " + str(ae))
         return jsonify({"error": str(ae)}), 250
 
-
+def format_duration(duration):
+    if duration >= 3600:  # If duration is more than or equal to an hour
+        hours = duration // 3600
+        minutes = (duration % 3600) // 60
+        return f"{hours} hr. {minutes} min."
+    elif duration >= 60:  # If duration is more than or equal to a minute
+        minutes = duration // 60
+        seconds = duration % 60
+        return f"{minutes} min. {seconds} sec."
+    else:  # If duration is less than a minute
+        return f"{duration} sec."
 def getDirectLinkInsta_instagrapi(insta_url):
     cl = Client()
     cl.login(username="katebrooks@myyahoo.com", password="OnlyFans1")
@@ -409,40 +424,55 @@ def allInOneDownloader(url):
                 direct_link = getYT_DLinkInfo(info)
                 result = {
                     "videoURL": direct_link,
-                    "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)
+                    "title": extract_title(info)[0],
+                    "thumbnail": extract_thumbnail(info),
+                    "realTitle": extract_title(info)[1],
+                    "uploader": find_uploader(info),
+                    "duration": find_max_duration(info)
                 }
 
             elif site in ["twitter.com", "x.com"]:
                 direct_link = getTW_DLinkInfo(info)
                 result = {
                     "videoURL": direct_link,
-                    "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)
+                    "title": extract_title(info)[0],
+                    "thumbnail": extract_thumbnail(info),
+                    "realTitle": extract_title(info)[1],
+                    "uploader": find_uploader(info),
+                    "duration": find_max_duration(info)
                 }
 
             elif site in ["instagram.com", "insta.com"]:
                 direct_link = getIN_DLinkInfo(info)
                 result = {
                     "videoURL": direct_link,
-                    "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)
+                    "title": extract_title(info)[0],
+                    "thumbnail": extract_thumbnail(info),
+                    "realTitle": extract_title(info)[1],
+                    "uploader": find_uploader(info),
+                    "duration": find_max_duration(info)
                 }
 
             elif "xvideo" in site or "pornhub" in site:
                 direct_link = getXV_DLinkInfo(info, site)
                 result = {
                     "videoURL": direct_link,
-                    "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)
+                    "title": extract_title(info)[0],
+                    "thumbnail": extract_thumbnail(info),
+                    "realTitle": extract_title(info)[1],
+                    "uploader": find_uploader(info),
+                    "duration": find_max_duration(info)
                 }
 
             else:
                 direct_link = info['url']  # Get the direct link
                 result = {
                     "videoURL": direct_link,
-                    "title": extract_title(info),
-                    "thumbnail": extract_thumbnail(info)
+                    "title": extract_title(info)[0],
+                    "thumbnail": extract_thumbnail(info),
+                    "realTitle": extract_title(info)[1],
+                    "uploader": find_uploader(info),
+                    "duration": find_max_duration(info)
                 }
 
             return result
@@ -451,6 +481,45 @@ def allInOneDownloader(url):
             print(traceback.format_exc())
             print(ke)
             return handle_exception(info)
+
+
+def find_uploader(response):
+    def traverse(data):
+        if isinstance(data, dict):
+            if 'uploader' in data:
+                return data['uploader']
+            for value in data.values():
+                result = traverse(value)
+                if result:
+                    return result
+        elif isinstance(data, list):
+            for item in data:
+                result = traverse(item)
+                if result:
+                    return result
+        return ""  # Return empty string if key not found
+
+    return traverse(response)
+
+
+def find_max_duration(response):
+    max_duration = 0
+
+    def traverse(data):
+        nonlocal max_duration
+
+        if isinstance(data, dict):
+            if 'duration' in data:
+                max_duration = max(max_duration, data['duration'])
+            for value in data.values():
+                traverse(value)
+        elif isinstance(data, list):
+            for item in data:
+                traverse(item)
+
+    traverse(response)
+
+    return format_duration(max_duration)
 
 
 # xvideos.com, pornhub.com
@@ -552,7 +621,13 @@ def handle_exception(info):
     try:
         print("In handle exception")
         # Implement your logic to handle the exception here
-        result = {"videoURL": print_nested_urls(info)[0], "title": extract_title(info), "thumbnail":extract_thumbnail(info)}
+        result = {"videoURL": print_nested_urls(info)[0],
+                  "title": extract_title(info)[0],
+                  "thumbnail": extract_thumbnail(info),
+                  "realTitle": extract_title(info)[1],
+                  "uploader": find_uploader(info),
+                  "duration": find_max_duration(info)
+                  }
         return result
     except Exception as e:
         print(e)
@@ -561,14 +636,17 @@ def handle_exception(info):
 
 
 def extract_title(data):
+    list_title = []
     if "title" in data:
         title = data["title"]
+
         cleaned_title = re.sub(r'[^a-zA-Z0-9]', ' ', title)
         rand = ''.join(random.choices(string.ascii_letters + string.digits, k=4))
-
-        return cleaned_title + "_" + rand
+        list_title.append(cleaned_title + "_" + rand)
+        list_title.append(title)
+        return list_title
     else:
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        return [''.join(random.choices(string.ascii_letters + string.digits, k=6)), "video.mp4"]
 
 
 def print_nested_urls(data, key='url'):
