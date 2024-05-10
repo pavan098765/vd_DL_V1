@@ -114,7 +114,7 @@ def getDirectLinkYT(video_url):
                   "audioURL": onlyAudioDirectLink,
                   "thumbnail": [thumbnail],
                   "realTitle": yt.title,
-                  "uploader": yt.channel_id,
+                  "uploader": yt.author,
                   "duration": format_duration(yt.length)
 
                   }
