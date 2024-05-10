@@ -475,7 +475,7 @@ def allInOneDownloader(url):
             else:
                 direct_link = info['url']  # Get the direct link
                 result = {
-                    "videoURL": direct_link,
+                    "videoURL": [direct_link] ,
                     "title": extract_title(info)[0],
                     "thumbnail": extract_thumbnail(info),
                     "realTitle": extract_title(info)[1],
