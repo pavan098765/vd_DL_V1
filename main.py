@@ -125,17 +125,20 @@ def getDirectLinkYT(video_url):
         app.logger.error("ERROR | " + ind_time + " | getDirectLinkYT | " + str(ae))
         return jsonify({"error": str(ae)}), 250
 
+
 def format_duration(duration):
     if duration >= 3600:  # If duration is more than or equal to an hour
         hours = duration // 3600
         minutes = (duration % 3600) // 60
-        return f"{hours} hr. {minutes} min."
+        return f"{hours:.0f} hr. {minutes:.1f} min."
     elif duration >= 60:  # If duration is more than or equal to a minute
         minutes = duration // 60
         seconds = duration % 60
-        return f"{minutes} min. {seconds} sec."
+        return f"{minutes:.0f} min. {seconds:.1f} sec."
     else:  # If duration is less than a minute
-        return f"{duration} sec."
+        return f"{duration:.1f} sec."
+
+
 def getDirectLinkInsta_instagrapi(insta_url):
     cl = Client()
     cl.login(username="katebrooks@myyahoo.com", password="OnlyFans1")
