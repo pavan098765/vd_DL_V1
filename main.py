@@ -127,16 +127,21 @@ def getDirectLinkYT(video_url):
 
 
 def format_duration(duration):
-    if duration >= 3600:  # If duration is more than or equal to an hour
-        hours = duration // 3600
-        minutes = (duration % 3600) // 60
-        return f"{hours:.0f} hr. {minutes:.1f} min."
-    elif duration >= 60:  # If duration is more than or equal to a minute
-        minutes = duration // 60
-        seconds = duration % 60
-        return f"{minutes:.0f} min. {seconds:.1f} sec."
-    else:  # If duration is less than a minute
-        return f"{duration:.1f} sec."
+    hours, remainder = divmod(duration, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    formatted_duration = ""
+
+    if hours > 0:
+        formatted_duration += f"{hours} hr. "
+    if minutes > 0:
+        formatted_duration += f"{minutes} min. "
+    if seconds > 0:
+        formatted_duration += f"{seconds:.1f} sec."
+    elif duration == 0:
+        formatted_duration += "0 sec."
+
+    return formatted_duration.strip()  # Remove trailing whitespace
 
 
 def getDirectLinkInsta_instagrapi(insta_url):
