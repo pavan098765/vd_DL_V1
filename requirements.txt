@@ -2,13 +2,13 @@ aiohttp==3.9.5
 beautifulsoup4==4.12.3
 Flask==3.0.3
 flask_limiter==3.6.0
-instaloader==4.11
-pytube==15.0.0
+instaloader
+pytube
 pytz==2024.1
 Requests==2.31.0
 selenium==4.20.0
 gunicorn==22.0.0
-yt_dlp==2024.4.9
+yt_dlp
 instagrapi
 pillow
 python-telegram-bot==21.1.1
